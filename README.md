@@ -26,3 +26,8 @@ two combined will hopefully yield great enough performance to do deep searches o
 
 The OEIS website contains a page which lists the first 100,000 terms of the sequence and this has been used to test the results
 of each of these programs.
+
+A note on performance:
+While rnaive.go outperformed recaman3.py significantly in smaller terms of the sequence, over 10 million terms recaman3.py
+still wins out, completing it in 2.5 hours while rnaive.go took nearly 5 hours. This demonstrates the considerably higher
+speed of Go, and correspondingly the utility of this packing function. 
