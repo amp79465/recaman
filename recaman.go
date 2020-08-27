@@ -9,14 +9,29 @@ import (
 
 var sequenceMembers [][]int = [][]int{[]int{0,0}}
 var lastAdded int = 0
+var workerCount int = 1
 
-func inSequence(n int) bool {
-  for i := 0; i < len(sequenceMembers); i++ {
-    if n >= sequenceMembers[i][0] && n <= sequenceMembers[i][1] {
-      return true
+func searchSequence(seq [][]int, n int, result chan bool) {
+  for i := 0; i < len(seq); i++ {
+    if n >= seq[i][0] && n <= seq[i][1] {
+      result <- true
     }
   }
-  return false
+  result <- false
+}
+
+func inSequence(n int) bool {
+  divisor := 0
+  if len(sequenceMembers) / workerCount >= 1 {
+    divisor = workerCount
+  } else {
+    divisor = len(sequenceMembers)
+  }
+  resultChannel := make(chan divisor)
+  for i := 0; i < divisor; i++ {
+    go searchSequence(sequenceMembers[i:i], n, resultChannel)
+  }
+
 }
 
 func addMember(n int) {
