@@ -5,33 +5,68 @@ import (
   "os"
   "strconv"
   "time"
+  "sync"
+  "math"
   )
 
 var sequenceMembers [][]int = [][]int{[]int{0,0}}
 var lastAdded int = 0
-var workerCount int = 1
+var workerCount int = 2
 
-func searchSequence(seq [][]int, n int, result chan bool) {
+// Takes a slice of the sequence and unpacks it, searching for the int n
+func searchSequence(seq [][]int, n int, result chan bool, wg *sync.WaitGroup) {
+  defer wg.Done()
   for i := 0; i < len(seq); i++ {
     if n >= seq[i][0] && n <= seq[i][1] {
       result <- true
+      return
     }
   }
   result <- false
+  return
+}
+
+func monitorWorker(wg *sync.WaitGroup, resultChannel chan bool) {
+  wg.Wait()
+  close(resultChannel)
 }
 
 func inSequence(n int) bool {
+  //Set up the divisor to split up the sequence appropriately
   divisor := 0
-  if len(sequenceMembers) / workerCount >= 1 {
+  wg := &sync.WaitGroup{}
+  sliceLength := int(math.Floor(float64(len(sequenceMembers)) / float64(workerCount))) + 1
+  if sliceLength >= 1 {
     divisor = workerCount
   } else {
     divisor = len(sequenceMembers)
   }
-  resultChannel := make(chan divisor)
+  wg.Add(divisor)
+  //Deploy the goroutines to search the function
+  resultChannel := make(chan bool)
+
+  fmt.Println("Sequence: ", sequenceMembers)
+
   for i := 0; i < divisor; i++ {
-    go searchSequence(sequenceMembers[i:i], n, resultChannel)
+    //Handle if we are on the last member of the sequence object and capture the remainder of the slice
+    if i == divisor - 1 {
+      go searchSequence(sequenceMembers[i*divisor:], n, resultChannel, wg)
+      fmt.Println(sequenceMembers[i*divisor:])
+    } else {
+      go searchSequence(sequenceMembers[i*divisor:i*divisor+sliceLength], n, resultChannel, wg)
+      fmt.Println(sequenceMembers[i*divisor:i*divisor+sliceLength])
+    }
   }
 
+  go monitorWorker(wg, resultChannel)
+
+  // Get the results of the goroutines and return true if any are true
+  for result := range resultChannel {
+    if result == true {
+      return true
+    }
+  }
+  return false
 }
 
 func addMember(n int) {
@@ -98,6 +133,7 @@ func addMember(n int) {
   }
 }
 
+// The sequence generating function
 func recaman(termLimit int) {
   for t := 1; t <= termLimit; t++ {
     sequenceCandidate := lastAdded - t
@@ -108,6 +144,7 @@ func recaman(termLimit int) {
       addMember(lastAdded + t)
       lastAdded = lastAdded + t
     }
+    fmt.Println(t, lastAdded)
   }
 }
 
