@@ -1,5 +1,6 @@
 # recaman
-Playing with Recamán's sequence (https://oeis.org/A005132)
+Playing with Recamán's sequence - https://oeis.org/A005132
+Numberphile video on the sequence https://youtu.be/FGC5TdIiT9U
 
 These programs explore efficiently computing Recamán's sequence in different languages.
 Initially these are Python and Go.
