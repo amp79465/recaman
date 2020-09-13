@@ -24,7 +24,9 @@ and using this method we can encode them into this structure:
 This structure is much faster to search in the long term. While the naive approach of appending each addition member of the 
 sequence onto a list grows linearly, this packing method grows much more slowly. At 100,000 terms the object has 427 sequences, and at 1,000,000 terms it has 1,442.
 
-recaman.go is able to implement this packing method and achieve blistering speeds, calculating 10 million terms of the sequence in 1 minute and 25 seconds. This is without using additional threads, and the next implementation of recaman.py will do so.
+The naive Go implentation is my clumsy attempt to make recaman.py happen in rnaive.go and it is much, much faster than both
+python programs. recaman-goroutines.go is the first iteration of using goroutines to improve performance. 
+At this present update there are in fact no performance benefits, but the code does function.
 
 The OEIS website contains a page which lists the first 100,000 terms of the sequence and this has been used to test the results
 of each of these programs.

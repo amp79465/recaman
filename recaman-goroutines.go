@@ -5,14 +5,68 @@ import (
   "os"
   "strconv"
   "time"
+  "sync"
+  "math"
   )
 
 var sequenceMembers [][]int = [][]int{[]int{0,0}}
 var lastAdded int = 0
+var maxRoutines int = 0
+
+// Takes a slice of the sequence and unpacks it, searching for the int n
+func searchSequence(seq [][]int, n int, result chan bool, wg *sync.WaitGroup) {
+  defer wg.Done()
+  for i := 0; i < len(seq); i++ {
+    if n >= seq[i][0] && n <= seq[i][1] {
+      result <- true
+      return
+    }
+  }
+  result <- false
+  return
+}
+
+func monitorWorker(wg *sync.WaitGroup, resultChannel chan bool) {
+  wg.Wait()
+  close(resultChannel)
+}
 
 func inSequence(n int) bool {
-  for i := 0; i < len(sequenceMembers); i++ {
-    if n >= sequenceMembers[i][0] && n <= sequenceMembers[i][1] {
+  //Create the wait group and figure out how many members will be in it
+  wg := &sync.WaitGroup{}
+  sequenceLength := len(sequenceMembers)
+  routineCount := 0
+  if sequenceLength < maxRoutines {
+    routineCount = sequenceLength
+  } else {
+    routineCount = maxRoutines
+  }
+
+  wg.Add(routineCount)
+  subSequenceLength := int(math.Floor(float64(sequenceLength) / float64(maxRoutines)))
+
+  //Deploy the goroutines to search the function
+  resultChannel := make(chan bool, routineCount)
+
+  //fmt.Println("Sequence: ", sequenceMembers)
+
+  //Dispatch goroutines
+  for i := 0; i < routineCount; i++ {
+    //Handle if we are on the last member of the sequence object and capture the remainder of the slice
+    if i == routineCount - 1 {
+      go searchSequence(sequenceMembers[i * subSequenceLength:], n, resultChannel, wg)
+      //fmt.Println(sequenceMembers[i * subSequenceLength:])
+    } else {
+      go searchSequence(sequenceMembers[i * subSequenceLength:(i + 1) * subSequenceLength], n, resultChannel, wg)
+      //fmt.Println(sequenceMembers[i*subSequenceLength:(i + 1) * subSequenceLength])
+    }
+  }
+
+  go monitorWorker(wg, resultChannel)
+
+  // Get the results of the goroutines and return true if any are true
+  for result := range resultChannel {
+    if result == true {
       return true
     }
   }
@@ -83,6 +137,7 @@ func addMember(n int) {
   }
 }
 
+// The sequence generating function
 func recaman(termLimit int) {
   for t := 1; t <= termLimit; t++ {
     sequenceCandidate := lastAdded - t
@@ -93,18 +148,25 @@ func recaman(termLimit int) {
       addMember(lastAdded + t)
       lastAdded = lastAdded + t
     }
+    //fmt.Println(t, lastAdded)
   }
 }
 
 func main() {
-  tL := 0
+  termLimit := 0
   timeStart := time.Now()
   termLimitInput := os.Args[1]
   if s, err := strconv.Atoi(termLimitInput); err == nil {
-		tL = s
+		termLimit = s
 	}
-  recaman(tL)
+  maxRoutinesInput := os.Args[2]
+  if s, err := strconv.Atoi(maxRoutinesInput); err == nil {
+		maxRoutines = s
+	}
+  recaman(termLimit)
   timeElapsed := time.Since(timeStart)
+  //fmt.Println(sequenceMembers)
   fmt.Println("Sequence object count: ", len(sequenceMembers))
   fmt.Println("Operation took", timeElapsed)
+  fmt.Println("Last member added: ", lastAdded)
 }
