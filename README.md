@@ -21,13 +21,8 @@ This structure is much faster to search in the long term. While the naive approa
 sequence onto a list grows linearly, this packing method grows much more slowly. At 100,000 terms the object has 427 sequences
 
 The naive Go implentation is my clumsy attempt to make recaman.py happen in rnaive.go and it is much, much faster than both
-python programs. Once this compressed data structure is implemented each lookup will be able to be run in parellel, and these
-two combined will hopefully yield great enough performance to do deep searches of Recamán's sequence.
+python programs. recaman-goroutines.go is the first iteration of using goroutines to improve performance. 
+At this preset update there are in fact no performance benefits, but the code does function.
 
 The OEIS website contains a page which lists the first 100,000 terms of the sequence and this has been used to test the results
 of each of these programs.
-
-A note on performance:
-While rnaive.go outperformed recaman3.py significantly in smaller terms of the sequence, over 10 million terms recaman3.py
-still wins out, completing it in 2.5 hours while rnaive.go took nearly 5 hours. This demonstrates the considerably higher
-speed of Go, and correspondingly the utility of this packing function. 
