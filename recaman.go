@@ -12,10 +12,15 @@ var lastAdded int = 0
 
 func inSequence(n int) bool {
   for i := 0; i < len(sequenceMembers); i++ {
-    if n >= sequenceMembers[i][0] && n <= sequenceMembers[i][1] {
-      return true
+    if n <= sequenceMembers[i][1] {
+      if n >= sequenceMembers[i][0] {
+        return true
+      } else {
+        return false
+      }
     }
   }
+  //It could be the case that the number in question is larger than each member of the sequence
   return false
 }
 
@@ -105,6 +110,8 @@ func main() {
 	}
   recaman(tL)
   timeElapsed := time.Since(timeStart)
+  //fmt.Println(sequenceMembers)
   fmt.Println("Sequence object count: ", len(sequenceMembers))
   fmt.Println("Operation took", timeElapsed)
+  fmt.Println("Last member added: ", lastAdded)
 }
